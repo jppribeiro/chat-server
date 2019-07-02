@@ -10,7 +10,7 @@ import java.util.LinkedList;
 
 public class ChatServer {
 
-    private LinkedList<ServerWorker> clients;
+    private final LinkedList<ServerWorker> clients = new LinkedList<>();
 
     private ServerSocket serverSocket;
 
@@ -18,7 +18,7 @@ public class ChatServer {
 
     public void start() {
 
-        clients = new LinkedList<>();
+        //clients = new LinkedList<>();
 
         try {
 
@@ -47,42 +47,41 @@ public class ChatServer {
                 client.sendMsg (activeClient.getClient().getName() + ": " + msg);
             }
         }
-
     }
 
     private void clientQuit(ServerWorker quittingClient) {
 
-        for (int i = 0; i < clients.size(); i++) {
+        synchronized (clients) {
+            for (int i = 0; i < clients.size(); i++) {
 
-            if (clients.get(i).equals(quittingClient)) {
+                if (clients.get(i).equals(quittingClient)) {
 
-                clients.remove(i);
-                break;
+                    try {
+                        clients.get(i).closeClient();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    clients.remove(i);
+                    break;
 
+                }
             }
-
         }
-
     }
 
     private void displayList(ServerWorker activeClient) {
 
-        synchronized (clients) {
+        for (ServerWorker client:
+             clients) {
 
-            for (ServerWorker client:
-                 clients) {
-
-                activeClient.sendMsg(client.getClient().getName());
-
-            }
+            activeClient.sendMsg(client.getClient().getName());
 
         }
-
     }
 
     private class ServerWorker implements Runnable {
 
-        private Socket clientSocket;
+        private final Socket clientSocket;
 
         private Client client;
 
@@ -118,15 +117,15 @@ public class ChatServer {
 
                 while (!line.equals("/quit")) {
 
-                    switch (line) {
-                        case "/list":
-                            displayList(this);
-                            line = in.readLine();
-                            continue;
-                        case "/whisper":
-                    }
-
                     synchronized (clients) {
+
+                        switch (line) {
+                            case "/list":
+                                displayList(this);
+                                line = in.readLine();
+                                continue;
+                            case "/whisper":
+                        }
 
                         msgReceived(line, this);
 
