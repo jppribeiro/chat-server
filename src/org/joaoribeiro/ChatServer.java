@@ -14,7 +14,7 @@ public class ChatServer {
 
     private ServerSocket serverSocket;
 
-    private int PORT = 8085;
+    private int PORT = 7070;
 
     public void start() {
 
@@ -44,7 +44,7 @@ public class ChatServer {
         for (ServerWorker client:
              clients) {
             if (!client.equals(activeClient)) {
-                client.sendMsg (activeClient.getClient().getName() + ": " + msg);
+                client.sendMsg (activeClient.getClientName() + ": " + msg);
             }
         }
     }
@@ -74,7 +74,7 @@ public class ChatServer {
         for (ServerWorker client:
              clients) {
 
-            activeClient.sendMsg(client.getClient().getName());
+            activeClient.sendMsg(client.getClientName());
 
         }
     }
@@ -83,7 +83,7 @@ public class ChatServer {
 
         private final Socket clientSocket;
 
-        private Client client;
+        private String clientName;
 
         private PrintWriter out;
 
@@ -98,7 +98,7 @@ public class ChatServer {
                 setupStreams();
 
                 try {
-                    client = new Client(askName());
+                    clientName = askName();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -133,6 +133,10 @@ public class ChatServer {
 
                     line = in.readLine();
 
+                    System.out.println(line);
+                    if (line.isEmpty()) {
+                        break;
+                    }
                 }
 
                 clientQuit(this);
@@ -179,8 +183,8 @@ public class ChatServer {
             }
         }
 
-        public Client getClient() {
-            return client;
+        public String getClientName() {
+            return clientName;
         }
     }
 
