@@ -79,6 +79,18 @@ public class ChatServer {
         }
     }
 
+    private void sendToClient(String clientName, String msg) {
+
+        for (ServerWorker client : clients) {
+            if (client.getClientName().equals(clientName)) {
+
+                client.sendMsg(msg);
+
+            }
+        }
+
+    }
+
     private class ServerWorker implements Runnable {
 
         private final Socket clientSocket;
@@ -125,6 +137,11 @@ public class ChatServer {
                                 line = in.readLine();
                                 continue;
                             case "/whisper":
+                                String whisperName = whisperClient();
+                                String msg = whisperMsg();
+                                sendToClient(whisperName, msg);
+                                line = in.readLine();
+                                continue;
                         }
 
                         msgReceived(line, this);
@@ -161,6 +178,18 @@ public class ChatServer {
 
             return in.readLine();
 
+        }
+
+
+        private String whisperClient() throws IOException {
+            out.println("Client name: ");
+
+            return in.readLine();
+        }
+
+        private String whisperMsg() throws IOException {
+            out.println("Private message: ");
+            return in.readLine();
         }
 
         private void closeClient() throws IOException {
